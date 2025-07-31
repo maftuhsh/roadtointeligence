@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mau pinter ya belajar dongo</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); /* Dark blue/gray gradient background */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #e2e8f0; /* Light text for dark background */
+        }
+        /* Custom styles for the message box */
+        .message-box {
+            position: fixed;
+            top: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Stronger shadow for dark theme */
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 320px;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            transform: translateX(-50%) translateY(-20px);
+        }
+        .message-box.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .message-box.success {
+            background: linear-gradient(45deg, #2d7a5b, #10b981); /* Greenish gradient */
+            border-left: 6px solid #059669;
+            color: #d1fae5; /* Light text for success */
+        }
+        .message-box.error {
+            background: linear-gradient(45deg, #c53030, #ef4444); /* Reddish gradient */
+            border-left: 6px solid #dc2626;
+            color: #fee2e2; /* Light text for error */
+        }
+        .loading-spinner {
+            border-top-color: #00bcd4; /* Cyan for spinner */
+            border-bottom-color: #2563eb; /* Blue for spinner */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom button hover effect */
+        .nav-button-active {
+            background: linear-gradient(45deg, #00bcd4, #2563eb); /* Cyan to Blue */
+            color: white;
+            box-shadow: 0 6px 12px rgba(0, 188, 212, 0.4);
+            transform: scale(1.05);
+        }
+        .nav-button-inactive {
+            background-color: #4a5568; /* Darker gray */
+            color: #e2e8f0; /* Light text */
+            transition: all 0.3s ease;
+        }
+        .nav-button-inactive:hover {
+            background-color: #6a768f; /* Lighter gray on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Card styles */
+        .card-bg {
+            background-color: rgba(45, 55, 72, 0.9); /* Slightly transparent dark blue/gray */
+            backdrop-filter: blur(5px);
+            border-radius: 2rem;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4); /* Deeper shadow for dark theme */
+        }
+
+        /* Inner sections */
+        .inner-section-bg {
+            background-color: rgba(26, 32, 44, 0.8); /* Even darker, slightly transparent */
+            border-radius: 1.5rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Inner shadow */
+        }
+
+        /* Input/Select/Textarea styles */
+        input, select, textarea {
+            border-radius: 0.75rem;
+            border: 1px solid #4a5568; /* Darker gray border */
+            background-color: #2d3748; /* Dark background for inputs */
+            color: #e2e8f0; /* Light text for inputs */
+            transition: all 0.2s ease-in-out;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #a0aec0; /* Lighter placeholder text */
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00bcd4; /* Cyan focus border */
+            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.3); /* Cyan focus ring */
+        }
+
+        /* Primary button style */
+        .primary-btn {
+            background: linear-gradient(45deg, #00bcd4, #2563eb); /* Cyan to Blue */
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 188, 212, 0.3);
+            transition: all 0.3s ease;
+        }
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 188, 212, 0.4);
+            opacity: 0.9;
+        }
+
+        /* Delete button style */
+        .delete-btn {
+            color: #ef4444; /* Red */
+            transition: all 0.2s ease;
+        }
+        .delete-btn:hover {
+            color: #b91c1c; /* Darker red */
+            background-color: rgba(239, 68, 68, 0.1); /* Light red background */
+            border-radius: 50%;
+            transform: scale(1.1);
+        }
+
+        /* Checkbox style */
+        .form-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 0.5rem;
+            border: 2px solid #00bcd4; /* Cyan border */
+            background-color: #2d3748; /* Dark background */
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .form-checkbox:checked {
+            background: linear-gradient(45deg, #00bcd4, #2563eb); /* Cyan to Blue gradient */
+            border-color: #00bcd4;
+        }
+        .form-checkbox:checked::after {
+            content: '✓';
+            color: white;
+            font-size: 1rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* List item backgrounds */
+        .list-item-bg-completed {
+            background-color: #1a365d; /* Darker blue for completed tasks */
+            border-left-color: #38a169; /* Green border */
+        }
+        .list-item-bg-pending {
+            background-color: #2d3748; /* Darker blue/gray for pending tasks */
+            border-left-color: #00bcd4; /* Cyan border */
+        }
+        .list-item-bg-record {
+            background-color: #2d3748; /* Darker blue/gray for records */
+            border-left-color: #2563eb; /* Blue border */
+        }
+        .list-item-bg-pending:hover, .list-item-bg-record:hover {
+            background-color: #4a5568; /* Lighter on hover */
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-900 to-gray-900 p-6 shadow-2xl rounded-b-3xl">
+        <div class="container mx-auto flex flex-wrap justify-center items-center">
+            <h1 class="text-4xl font-extrabold text-white mb-4 md:mb-0 md:mr-8 tracking-tight">
+                💻 Road To Inteligence 🚀
+            </h1>
+            <nav class="flex flex-wrap justify-center gap-4" id="main-nav">
+                <!-- Navigation buttons will be injected here by JavaScript -->
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="container mx-auto px-4 py-10 flex-grow">
+        <!-- Loading Indicator is now a sibling of dynamic-content-area -->
+        <div id="loading-indicator" class="flex flex-col justify-center items-center h-64 hidden">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 loading-spinner"></div>
+            <p class="ml-4 text-xl text-gray-200 mt-4 font-medium">Memuat vibe belajar...</p>
+        </div>
+        <!-- Motivation Section -->
+        <div id="motivation-section" class="card-bg p-6 rounded-3xl max-w-4xl mx-auto my-8 text-center">
+            <p id="motivation-quote" class="text-xl font-semibold text-gray-200 mb-4 italic">
+                <!-- Initial quote will be set by JS -->
+            </p>
+            <button onclick="changeMotivationQuote()" class="primary-btn text-sm px-4 py-2">
+                Quote Baru ✨
+            </button>
+        </div>
+        <!-- Dynamic content will be injected into this specific div -->
+        <div id="dynamic-content-area">
+            <!-- Content will be injected here by JavaScript -->
+        </div>
+    </main>
+
+    <!-- Message Box -->
+    <div id="message-box" class="message-box hidden">
+        <p id="message-text" class="font-medium"></p>
+        <button id="message-close-btn" class="ml-4 text-gray-500 hover:text-gray-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Firebase SDK (required by Canvas environment) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase instances
+        window.firebaseApp = null;
+        window.firestoreDb = null;
+        window.firebaseAuth = null;
+        window.currentUserId = null;
+        window.isAuthReady = false;
+
+        // Initialize Firebase and handle authentication
+        const initFirebase = async () => {
+            try {
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                window.firebaseApp = initializeApp(firebaseConfig);
+                window.firestoreDb = getFirestore(window.firebaseApp);
+                window.firebaseAuth = getAuth(window.firebaseApp);
+
+                onAuthStateChanged(window.firebaseAuth, async (user) => {
+                    if (user) {
+                        window.currentUserId = user.uid;
+                    } else {
+                        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(window.firebaseAuth, initialAuthToken);
+                            window.currentUserId = window.firebaseAuth.currentUser?.uid;
+                        } else {
+                            await signInAnonymously(window.firebaseAuth);
+                            window.currentUserId = window.firebaseAuth.currentUser?.uid || crypto.randomUUID();
+                        }
+                    }
+                    window.isAuthReady = true; // Auth state is determined
+                    console.log("Firebase initialized. User ID:", window.currentUserId);
+                    // Trigger data loading after auth is ready
+                    loadInitialData();
+                });
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+                window.showMessage("Gagal menginisialisasi aplikasi. Silakan coba lagi.", "error");
+                window.isAuthReady = true; // Ensure loading state is resolved even on error
+                loadInitialData(); // Attempt to load data even if Firebase init fails
+            }
+        };
+
+        // Call Firebase initialization when the window loads
+        window.addEventListener('load', initFirebase);
+    </script>
+
+    <script>
+        // --- GLOBAL STATE ---
+        let currentView = 'today';
+        let todayTasks = [];
+        let learningRecords = [];
+        let isLoading = true;
+        let messageTimeoutId = null; // To clear previous message timeouts
+
+        // --- MOTIVATION QUOTES ---
+        const motivationQuotes = [
+            "Motivasi akan membantumu memulai. Kebiasaan akan membantumu terus melangkah.",
+            "Jangan pernah berhenti belajar, karena hidup tak pernah berhenti mengajar.",
+            "Belajar adalah investasi terbaik untuk masa depanmu.",
+            "Setiap langkah kecil dalam belajar adalah kemajuan besar.",
+            "Kesuksesan adalah hasil dari persiapan, kerja keras, dan belajar dari kegagalan.",
+            "Hari ini adalah kesempatan untuk membangun hari esok yang kamu inginkan.",
+            "Pendidikan adalah senjata paling ampuh yang bisa kamu gunakan untuk mengubah dunia.",
+            "Semakin banyak kamu membaca, semakin banyak hal yang akan kamu ketahui. Semakin banyak kamu belajar, semakin banyak tempat yang akan kamu kunjungi.",
+            "Belajar bukan hanya tentang fakta, tetapi tentang melatih pikiran untuk berpikir.",
+            "Kemajuan bukan hanya tentang kecepatan, tetapi tentang arah yang benar."
+        ];
+        let currentQuoteIndex = 0;
+
+        // Function to change motivation quote
+        window.changeMotivationQuote = () => {
+            currentQuoteIndex = (currentQuoteIndex + 1) % motivationQuotes.length;
+            const quoteElement = document.getElementById('motivation-quote');
+            if (quoteElement) {
+                quoteElement.textContent = motivationQuotes[currentQuoteIndex];
+            }
+        };
+
+        // Initial quote display on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const quoteElement = document.getElementById('motivation-quote');
+            if (quoteElement) {
+                quoteElement.textContent = motivationQuotes[currentQuoteIndex];
+            }
+        });
+
+        // --- UTILITY FUNCTIONS ---
+
+        // Function to show messages (replaces alert())
+        window.showMessage = (msg, type) => {
+            const msgBox = document.getElementById('message-box');
+            const msgText = document.getElementById('message-text');
+
+            // Clear any existing timeout
+            if (messageTimeoutId) {
+                clearTimeout(messageTimeoutId);
+            }
+
+            msgText.textContent = msg;
+            msgBox.className = `message-box show ${type}`; // Add show class and type class
+            msgBox.classList.remove('hidden'); // Ensure it's visible
+
+            messageTimeoutId = setTimeout(() => {
+                msgBox.classList.remove('show'); // Hide by removing show class
+                // Optionally hide completely after transition
+                setTimeout(() => {
+                    msgBox.classList.add('hidden');
+                }, 300); // Match transition duration
+            }, 3000); // Message disappears after 3 seconds
+        };
+
+        // Close message box manually
+        document.getElementById('message-close-btn').onclick = () => {
+            const msgBox = document.getElementById('message-box');
+            msgBox.classList.remove('show');
+            if (messageTimeoutId) {
+                clearTimeout(messageTimeoutId);
+            }
+            setTimeout(() => {
+                msgBox.classList.add('hidden');
+            }, 300);
+        };
+
+        // --- FUNGSI SIMULASI INTERAKSI DENGAN GOOGLE SHEETS ---
+        // Dalam aplikasi nyata, fungsi-fungsi ini akan membuat panggilan HTTP ke backend Anda
+        // (misalnya, Google Apps Script Web App atau server Node.js/Python)
+        // yang kemudian akan berinteraksi dengan Google Sheets API.
+
+        // Fungsi simulasi untuk mengambil data
+        const fetchFromGoogleSheets = async (sheetName) => {
+            console.log(`[Simulasi] Mengambil data dari sheet: ${sheetName}`);
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // Data dummy untuk simulasi
+                    resolve(JSON.parse(localStorage.getItem(`${sheetName}_simulated`)) || []);
+                }, 500); // Simulasi penundaan jaringan
+            });
+        };
+
+        // Fungsi simulasi untuk mengirim/menambahkan data
+        const sendToGoogleSheets = async (sheetName, data) => {
+            console.log(`[Simulasi] Mengirim data ke sheet: ${sheetName}`, data);
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    let currentData = JSON.parse(localStorage.getItem(`${sheetName}_simulated`)) || [];
+                    currentData.push(data);
+                    localStorage.setItem(`${sheetName}_simulated`, JSON.stringify(currentData));
+                    resolve({ success: true, message: 'Data berhasil ditambahkan (simulasi).' });
+                }, 500);
+            });
+        };
+
+        // Fungsi simulasi untuk memperbarui data
+        const updateGoogleSheets = async (sheetName, id, updatedFields) => {
+            console.log(`[Simulasi] Memperbarui data di sheet: ${sheetName} untuk ID: ${id}`, updatedFields);
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    let currentData = JSON.parse(localStorage.getItem(`${sheetName}_simulated`)) || [];
+                    const newData = currentData.map(item =>
+                        item.id === id ? { ...item, ...updatedFields } : item
+                    );
+                    localStorage.setItem(`${sheetName}_simulated`, JSON.stringify(newData));
+                    resolve({ success: true, message: 'Data berhasil diperbarui (simulasi).' });
+                }, 500);
+            });
+        };
+
+        // Fungsi simulasi untuk menghapus data
+        const deleteFromGoogleSheets = async (sheetName, id) => {
+            console.log(`[Simulasi] Menghapus data dari sheet: ${sheetName} dengan ID: ${id}`);
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    let currentData = JSON.parse(localStorage.getItem(`${sheetName}_simulated`)) || [];
+                    const newData = currentData.filter(item => item.id !== id);
+                    localStorage.setItem(`${sheetName}_simulated`, JSON.stringify(newData));
+                    resolve({ success: true, message: 'Data berhasil dihapus (simulasi).' });
+                }, 500);
+            });
+        };
+
+        // --- RENDERING FUNCTIONS ---
+
+        // Render Header Navigation
+        const renderHeader = () => {
+            const navItems = [
+                { id: 'today', name: 'Rencana Hari Ini' },
+                { id: 'english', name: 'Bahasa Inggris' },
+                { id: 'machine-learning', name: 'Machine Learning' },
+                { id: 'embedded-system', name: 'Embedded System' },
+                { id: 'web-developer', name: 'Web Developer' },
+            ];
+            const navContainer = document.getElementById('main-nav');
+            navContainer.innerHTML = navItems.map(item => `
+                <button
+                    onclick="setView('${item.id}')"
+                    class="px-5 py-2 rounded-full text-lg font-medium transition-all duration-300 ease-in-out
+                    ${currentView === item.id
+                        ? 'nav-button-active'
+                        : 'nav-button-inactive'
+                    }"
+                >
+                    ${item.name}
+                </button>
+            `).join('');
+        };
+
+        // Render Today Plan View
+        const renderTodayPlan = () => {
+            const dynamicContentArea = document.getElementById('dynamic-content-area');
+            dynamicContentArea.innerHTML = `
+                <div class="card-bg p-8 rounded-3xl max-w-4xl mx-auto my-8">
+                    <h2 class="text-3xl font-bold text-gray-200 mb-6 text-center">Rencana Belajar Hari Ini 🚀</h2>
+
+                    <div class="inner-section-bg p-6 rounded-2xl mb-6">
+                        <h3 class="text-xl font-semibold text-gray-200 mb-4">Tambah Pelajaran Baru</h3>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <select id="today-subject-select" class="flex-grow p-3 rounded-xl">
+                                <option value="English">English</option>
+                                <option value="Machine Learning">Machine Learning</option>
+                                <option value="Embedded System">Embedded System</option>
+                                <option value="Web Developer">Web Developer</option>
+                            </select>
+                            <input
+                                type="text"
+                                id="new-task-input"
+                                class="flex-grow p-3 rounded-xl"
+                                placeholder="Contoh: Belajar Present Perfect Tense"
+                            />
+                            <button
+                                onclick="addTask()"
+                                class="primary-btn flex-shrink-0"
+                            >
+                                Tambah Tugas
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="inner-section-bg p-6 rounded-2xl">
+                        <h3 class="text-xl font-semibold text-gray-200 mb-4">Daftar Tugas Hari Ini</h3>
+                        <ul id="today-tasks-list" class="space-y-4">
+                            <!-- Tasks will be loaded here -->
+                        </ul>
+                    </div>
+                </div>
+            `;
+            renderTodayTasksList(); // Populate the tasks list
+            // Add event listener for Enter key on input
+            document.getElementById('new-task-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            });
+        };
+
+        // Render Today Tasks List
+        const renderTodayTasksList = () => {
+            const tasksList = document.getElementById('today-tasks-list');
+            if (!tasksList) return; // Exit if element not found
+            console.log("Rendering Today Tasks List. Element:", tasksList, "Data:", todayTasks); // Debugging
+
+            if (todayTasks.length === 0) {
+                tasksList.innerHTML = '<p class="text-gray-400 text-center py-4">Belum ada tugas untuk hari ini. Mari tambahkan!</p>';
+                return;
+            }
+
+            tasksList.innerHTML = todayTasks.map(task => `
+                <li
+                    class="flex items-center justify-between p-4 rounded-xl shadow-sm transition-all duration-200 ease-in-out border-l-4
+                    ${task.completed ? 'list-item-bg-completed border-green-500' : 'list-item-bg-pending border-cyan-500 hover:shadow-md'}"
+                >
+                    <div class="flex items-center flex-grow">
+                        <input
+                            type="checkbox"
+                            ${task.completed ? 'checked' : ''}
+                            onchange="toggleTaskCompletion('${task.id}')"
+                            class="form-checkbox"
+                        />
+                        <span class="ml-4 text-lg text-gray-200 ${task.completed ? 'line-through text-gray-400' : 'font-medium'}">
+                            <span class="font-semibold text-blue-400">#${task.subject.replace(/\s/g, '')}</span> ${task.task} <span class="text-sm text-gray-400">(${task.date})</span>
+                        </span>
+                    </div>
+                    <button
+                        onclick="deleteTask('${task.id}')"
+                        class="delete-btn p-2 rounded-full"
+                        title="Hapus tugas"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </li>
+            `).join('');
+        };
+
+        // Render Learning Progress View for a specific subject
+        const renderLearningProgress = (subject) => {
+            const dynamicContentArea = document.getElementById('dynamic-content-area');
+            const filteredRecords = learningRecords.filter(record => record.subject === subject);
+
+            dynamicContentArea.innerHTML = `
+                <div class="card-bg p-8 rounded-3xl max-w-4xl mx-auto my-8">
+                    <h2 class="text-3xl font-bold text-gray-200 mb-6 text-center">
+                        Hasil Belajar: ${subject} 📚
+                    </h2>
+
+                    <div class="inner-section-bg p-6 rounded-2xl mb-6">
+                        <h3 class="text-xl font-semibold text-gray-200 mb-4">Tambah Catatan Belajar Baru</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <input
+                                type="text"
+                                id="new-topic-input"
+                                class="p-3 rounded-xl"
+                                placeholder="Topik yang dipelajari (contoh: Present Perfect Tense)"
+                            />
+                            <select
+                                id="new-understanding-level-select"
+                                class="p-3 rounded-xl"
+                            >
+                                <option value="1">1 - Sangat Kurang Paham</option>
+                                <option value="2">2 - Kurang Paham</option>
+                                <option value="3" selected>3 - Cukup Paham</option>
+                                <option value="4">4 - Paham</option>
+                                <option value="5">5 - Sangat Paham</option>
+                            </select>
+                        </div>
+                        <input
+                            type="text"
+                            id="new-source-input"
+                            class="w-full p-3 rounded-xl mb-4"
+                            placeholder="Asal belajar (contoh: Buku 'English Grammar in Use', Coursera ML Course)"
+                        />
+                        <textarea
+                            id="new-notes-textarea"
+                            class="w-full p-3 rounded-xl mb-4 h-24 resize-y"
+                            placeholder="Catatan tambahan (opsional): poin penting, tantangan, sumber..."
+                        ></textarea>
+                        <button
+                            onclick="addRecord('${subject}')"
+                            class="primary-btn w-full"
+                        >
+                            Tambah Catatan
+                        </button>
+                    </div>
+
+                    <div class="inner-section-bg p-6 rounded-2xl">
+                        <h3 class="text-xl font-semibold text-gray-200 mb-4">Riwayat Belajar</h3>
+                        <ul id="learning-records-list" class="space-y-4">
+                            <!-- Records will be loaded here -->
+                        </ul>
+                    </div>
+                </div>
+            `;
+            renderLearningRecordsList(subject, filteredRecords); // Populate the records list
+        };
+
+        // Render Learning Records List
+        const renderLearningRecordsList = (subject, records) => {
+            const recordsList = document.getElementById('learning-records-list');
+            if (!recordsList) return; // Exit if element not found
+            console.log(`Rendering Learning Records List for ${subject}. Element:`, recordsList, "Data:", records); // Debugging
+
+            if (records.length === 0) {
+                recordsList.innerHTML = `<p class="text-gray-400 text-center py-4">Belum ada catatan belajar untuk ${subject}.</p>`;
+                return;
+            }
+
+            recordsList.innerHTML = records.map(record => `
+                <li
+                    class="list-item-bg-record p-4 rounded-xl shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-all duration-200 flex justify-between items-start"
+                >
+                    <div class="flex-grow">
+                        <p class="text-lg font-semibold text-gray-200">${record.topic}</p>
+                        <p class="text-sm text-gray-400">Selesai: ${record.dateCompleted}</p>
+                        ${record.source ? `<p class="text-gray-300 mt-1 text-sm italic">Asal Belajar: <span class="font-medium text-cyan-400">${record.source}</span></p>` : ''}
+                        ${record.notes ? `<p class="text-gray-300 mt-1 text-sm italic">Catatan: ${record.notes}</p>` : ''}
+                        <p class="text-sm text-gray-300 mt-1">Pemahaman: <span class="font-bold text-blue-400">${record.understandingLevel}/5</span></p>
+                    </div>
+                    <button
+                        onclick="deleteRecord('${record.id}', '${subject}')"
+                        class="delete-btn p-2 rounded-full"
+                        title="Hapus catatan"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </li>
+            `).join('');
+        };
+
+        // --- CORE APPLICATION LOGIC ---
+
+        // Function to switch views
+        window.setView = (viewId) => {
+            currentView = viewId;
+            renderAll(); // Re-render everything to update active button and content
+        };
+
+        // Function to add a new task (Today Plan)
+        const addTask = async () => {
+            const newTaskInput = document.getElementById('new-task-input');
+            const selectedSubject = document.getElementById('today-subject-select').value;
+            const taskText = newTaskInput.value.trim();
+
+            if (taskText !== '') {
+                const newId = Date.now().toString();
+                const taskToAdd = {
+                    id: newId,
+                    subject: selectedSubject,
+                    task: taskText,
+                    date: new Date().toLocaleDateString('id-ID'),
+                    completed: false,
+                };
+                try {
+                    const response = await sendToGoogleSheets('todayTasks', taskToAdd);
+                    if (response.success) {
+                        todayTasks.push(taskToAdd);
+                        newTaskInput.value = ''; // Clear input
+                        renderTodayTasksList(); // Re-render task list
+                        window.showMessage('Tugas berhasil ditambahkan!', 'success');
+                    } else {
+                        window.showMessage('Gagal menambahkan tugas.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error adding task:', error);
+                    window.showMessage('Terjadi kesalahan saat menambahkan tugas.', 'error');
+                }
+            }
+        };
+
+        // Function to toggle task completion
+        const toggleTaskCompletion = async (id) => {
+            const taskToUpdate = todayTasks.find(task => task.id === id);
+            if (!taskToUpdate) return;
+
+            const updatedCompletedStatus = !taskToUpdate.completed;
+
+            try {
+                const response = await updateGoogleSheets('todayTasks', id, { completed: updatedCompletedStatus });
+                if (response.success) {
+                    todayTasks = todayTasks.map(task =>
+                        task.id === id ? { ...task, completed: updatedCompletedStatus } : task
+                    );
+                    renderTodayTasksList(); // Re-render task list
+                    window.showMessage('Status tugas berhasil diperbarui!', 'success');
+                } else {
+                    window.showMessage('Gagal memperbarui status tugas.', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating task status:', error);
+                window.showMessage('Terjadi kesalahan saat memperbarui status tugas.', 'error');
+            }
+        };
+
+        // Function to delete a task
+        const deleteTask = async (id) => {
+            try {
+                const response = await deleteFromGoogleSheets('todayTasks', id);
+                if (response.success) {
+                    todayTasks = todayTasks.filter(task => task.id !== id);
+                    renderTodayTasksList(); // Re-render task list
+                    window.showMessage('Tugas berhasil dihapus!', 'success');
+                } else {
+                    window.showMessage('Gagal menghapus tugas.', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                window.showMessage('Terjadi kesalahan saat menghapus tugas.', 'error');
+            }
+        };
+
+        // Function to add a new learning record
+        const addRecord = async (subject) => {
+            const newTopicInput = document.getElementById('new-topic-input');
+            const newNotesTextarea = document.getElementById('new-notes-textarea');
+            const newUnderstandingLevelSelect = document.getElementById('new-understanding-level-select');
+            const newSourceInput = document.getElementById('new-source-input'); // Get the new source input
+
+            const topicText = newTopicInput.value.trim();
+            const notesText = newNotesTextarea.value.trim();
+            const understandingLevel = newUnderstandingLevelSelect.value;
+            const sourceText = newSourceInput.value.trim(); // Get the source value
+
+            if (topicText !== '') {
+                const newId = Date.now().toString();
+                const recordToAdd = {
+                    id: newId,
+                    subject: subject,
+                    topic: topicText,
+                    dateCompleted: new Date().toLocaleDateString('id-ID'),
+                    notes: notesText,
+                    understandingLevel: understandingLevel,
+                    source: sourceText, // Add the source to the record
+                };
+                try {
+                    // Normalize subject name for sheet key (e.g., "Machine Learning" -> "MachineLearningProgress")
+                    const sheetKey = subject.replace(/\s/g, '') + 'Progress';
+                    const response = await sendToGoogleSheets(sheetKey, recordToAdd);
+                    if (response.success) {
+                        learningRecords.push(recordToAdd);
+                        newTopicInput.value = '';
+                        newNotesTextarea.value = '';
+                        newUnderstandingLevelSelect.value = '3';
+                        newSourceInput.value = ''; // Clear the source input
+                        // Re-render only the current subject's records
+                        renderLearningRecordsList(subject, learningRecords.filter(rec => rec.subject === subject));
+                        window.showMessage('Catatan belajar berhasil ditambahkan!', 'success');
+                    } else {
+                        window.showMessage('Gagal menambahkan catatan belajar.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error adding record:', error);
+                    window.showMessage('Terjadi kesalahan saat menambahkan catatan belajar.', 'error');
+                }
+            }
+        };
+
+        // Function to delete a learning record
+        const deleteRecord = async (id, subject) => {
+            try {
+                // Normalize subject name for sheet key
+                const sheetKey = subject.replace(/\s/g, '') + 'Progress';
+                const response = await deleteFromGoogleSheets(sheetKey, id);
+                if (response.success) {
+                    learningRecords = learningRecords.filter(record => record.id !== id);
+                    // Re-render only the current subject's records
+                    renderLearningRecordsList(subject, learningRecords.filter(rec => rec.subject === subject));
+                    window.showMessage('Catatan belajar berhasil dihapus!', 'success');
+                } else {
+                    window.showMessage('Gagal menghapus catatan belajar.', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting record:', error);
+                window.showMessage('Terjadi kesalahan saat menghapus catatan belajar.', 'error');
+            }
+        };
+
+        // Function to load all initial data
+        const loadInitialData = async () => {
+            isLoading = true;
+            // Get references to loading indicator and dynamic content area
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const dynamicContentArea = document.getElementById('dynamic-content-area');
+
+            if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+            if (dynamicContentArea) dynamicContentArea.classList.add('hidden'); // Hide content while loading
+
+            console.log("Starting initial data load..."); // Debugging
+
+            try {
+                // Initialize dummy data if localStorage is empty
+                initializeDummyData();
+
+                todayTasks = await fetchFromGoogleSheets('todayTasks');
+                const loadedEnglishRecords = await fetchFromGoogleSheets('EnglishProgress');
+                const loadedMLRecords = await fetchFromGoogleSheets('MachineLearningProgress');
+                const loadedEmbeddedRecords = await fetchFromGoogleSheets('EmbeddedSystemProgress');
+                const loadedWebRecords = await fetchFromGoogleSheets('WebDeveloperProgress');
+                learningRecords = [...loadedEnglishRecords, ...loadedMLRecords, ...loadedEmbeddedRecords, ...loadedWebRecords];
+
+                window.showMessage('Data berhasil dimuat!', 'success');
+                console.log("Data loaded. todayTasks:", todayTasks, "learningRecords:", learningRecords); // Debugging
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+                window.showMessage('Gagal memuat data. Silakan coba lagi.', 'error');
+            } finally {
+                isLoading = false;
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                if (dynamicContentArea) dynamicContentArea.classList.remove('hidden'); // Show content after loading
+                renderAll(); // Render the UI after data is loaded
+                console.log("Initial data load finished. Rendering all."); // Debugging
+            }
+        };
+
+        // Main render function to update the UI based on currentView
+        const renderAll = () => {
+            console.log("Rendering all. Current view:", currentView); // Debugging
+            renderHeader(); // Always render header to update active button
+
+            // Get references to loading indicator and dynamic content area
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const dynamicContentArea = document.getElementById('dynamic-content-area');
+
+            if (isLoading) {
+                if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+                if (dynamicContentArea) dynamicContentArea.classList.add('hidden');
+                return;
+            } else {
+                if (loadingIndicator) loadingIndicator.classList.add('hidden');
+                if (dynamicContentArea) dynamicContentArea.classList.remove('hidden');
+            }
+
+            // Clear dynamic content area before rendering new view
+            if (dynamicContentArea) {
+                dynamicContentArea.innerHTML = ''; // Explicitly clear content
+            }
+
+            switch (currentView) {
+                case 'today':
+                    renderTodayPlan();
+                    break;
+                case 'english':
+                    renderLearningProgress('English');
+                    break;
+                case 'machine-learning':
+                    renderLearningProgress('Machine Learning');
+                    break;
+                case 'embedded-system':
+                    renderLearningProgress('Embedded System');
+                    break;
+                case 'web-developer':
+                    renderLearningProgress('Web Developer');
+                    break;
+                default:
+                    renderTodayPlan();
+                    break;
+            }
+        };
+
+        // Function to initialize dummy data in localStorage if it's empty
+        const initializeDummyData = () => {
+            // Check if ANY of the simulated data exists. If not, initialize all.
+            const hasAnyDummyData = localStorage.getItem('todayTasks_simulated') ||
+                                    localStorage.getItem('EnglishProgress_simulated') ||
+                                    localStorage.getItem('MachineLearningProgress_simulated') ||
+                                    localStorage.getItem('EmbeddedSystemProgress_simulated') ||
+                                    localStorage.getItem('WebDeveloperProgress_simulated');
+
+            if (!hasAnyDummyData) { // Only initialize if no dummy data exists
+                console.log("Initializing dummy data..."); // Debugging
+                localStorage.setItem('todayTasks_simulated', JSON.stringify([
+                    { id: '1', subject: 'English', task: 'Review Present Simple', date: '21/07/2025', completed: false },
+                    { id: '2', subject: 'Machine Learning', task: 'Understand Linear Regression', date: '21/07/2025', completed: true }
+                ]));
+                localStorage.setItem('EnglishProgress_simulated', JSON.stringify([
+                    { id: 'e1', subject: 'English', topic: 'Past Simple vs. Present Perfect', dateCompleted: '15/07/2025', notes: 'Perbedaan penggunaan dan contoh.', understandingLevel: '4', source: 'Buku "English Grammar in Use"' },
+                    { id: 'e2', subject: 'English', topic: 'Conditional Sentences Type 1', dateCompleted: '18/07/2025', notes: 'Latihan soal dan penggunaan.', understandingLevel: '3', source: 'Channel YouTube "Learn English with Emma"' }
+                ]));
+            } else {
+                console.log("Dummy data already exists, skipping initialization."); // Debugging
+            }
+        };
+
+        // Initial render when the page loads (after Firebase init completes)
+        // This will be called by initFirebase once auth is ready.
+    </script>
+</body>
+</html>
